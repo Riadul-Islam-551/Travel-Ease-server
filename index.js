@@ -1,5 +1,5 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const cors = require("cors");
 const app = express();
@@ -29,17 +29,25 @@ async function run() {
     const db = client.db("travel_ease");
     const productsCollection = db.collection("vehecle");
 
-    // get operation for all the vehecles 
-    app.get("/vehicles", async(req,res) => {
-      const cursor = productsCollection.find().sort({createdAt: -1});
-      const result = await cursor.toArray()
-      res.send(result)
-    })
+    // get operation for all the vehecles
+    app.get("/vehicles", async (req, res) => {
+      const cursor = productsCollection.find().sort({ createdAt: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // get operation for home page
     app.get("/vehicles/limit", async (req, res) => {
-      const cursor = productsCollection.find().sort({createdAt:-1}).limit(6);
+      const cursor = productsCollection.find().sort({ createdAt: -1 }).limit(6);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // get indevisual vehicle
+    app.get("/vehicles/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.findOne(query);
       res.send(result);
     });
 
