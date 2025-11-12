@@ -29,8 +29,15 @@ async function run() {
     const db = client.db("travel_ease");
     const productsCollection = db.collection("vehecle");
 
+    // get operation for all the vehecles 
+    app.get("/vehicles", async(req,res) => {
+      const cursor = productsCollection.find().sort({createdAt: -1});
+      const result = await cursor.toArray()
+      res.send(result)
+    })
+
     // get operation for home page
-    app.get("/vehecles/limit", async (req, res) => {
+    app.get("/vehicles/limit", async (req, res) => {
       const cursor = productsCollection.find().sort({createdAt:-1}).limit(6);
       const result = await cursor.toArray();
       res.send(result);
