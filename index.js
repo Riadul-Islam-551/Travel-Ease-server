@@ -28,6 +28,7 @@ async function run() {
 
     const db = client.db("travel_ease");
     const productsCollection = db.collection("vehecle");
+    const bookedCollection = db.collection("booked");
 
     // get operation for all the vehecles
     app.get("/vehicles", async (req, res) => {
@@ -48,6 +49,13 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await productsCollection.findOne(query);
+      res.send(result);
+    });
+
+    //post mehtod for booking
+    app.post("/booked", async (req, res) => {
+      const bookeVehicle = req.body;
+      const result = await bookedCollection.insertOne(bookeVehicle);
       res.send(result);
     });
 
