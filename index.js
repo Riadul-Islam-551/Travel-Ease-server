@@ -32,7 +32,9 @@ async function run() {
 
     // get operation for all the vehecles
     app.get("/vehicles", async (req, res) => {
-      const cursor = productsCollection.find().sort({ createdAt: -1 });
+      const email = req.query.email;
+      const query = email ? { userEmail: email } : {};
+      const cursor = productsCollection.find(query).sort({ createdAt: -1 });
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -73,6 +75,14 @@ async function run() {
     app.post("/vehicles", async (req, res) => {
       const addNewVehicle = req.body;
       const result = await productsCollection.insertOne(addNewVehicle);
+      res.send(result);
+    });
+
+    // delete the vehecle
+    app.delete("/vehicles/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.deleteOne(query);
       res.send(result);
     });
 
