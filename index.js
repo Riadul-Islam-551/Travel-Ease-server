@@ -52,6 +52,16 @@ async function run() {
       res.send(result);
     });
 
+    // get booked vehicles
+    app.get("/booked", async (req, res) => {
+      const email = req.query.email;
+      const query = email ? { bookedEmail: email } : {};
+
+      const cursor = bookedCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     //post mehtod for booking
     app.post("/booked", async (req, res) => {
       const bookeVehicle = req.body;
