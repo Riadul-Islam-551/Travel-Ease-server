@@ -5,6 +5,14 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
 
+ const admin = require("firebase-admin");
+
+const serviceAccount = require("./travel-ease-firebase-adminsdk.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wmzem5j.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -15,8 +23,27 @@ const client = new MongoClient(uri, {
   },
 });
 
+// middleWare
 app.use(cors());
 app.use(express.json());
+
+const verifyFirebaseToken = async (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+  const token = authorization.split(" ")[1];
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    console.log("inside token ", decoded);
+    req.token_email = decoded.email;
+    next();
+  } catch (error) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+
+  //next()
+};
 
 app.get("/", (req, res) => {
   res.send("The travel Ease server is running");
@@ -55,7 +82,7 @@ async function run() {
     });
 
     // get booked vehicles
-    app.get("/booked", async (req, res) => {
+    app.get("/booked",verifyFirebaseToken, async (req, res) => {
       const email = req.query.email;
       const query = email ? { bookedEmail: email } : {};
 
@@ -65,7 +92,7 @@ async function run() {
     });
 
     // patch operation
-    app.patch("/vehicles/:id", async (req, res) => {
+    app.patch("/vehicles/:id",verifyFirebaseToken, async (req, res) => {
       const id = req.params.id;
       const updateVehicle = req.body;
       const query = { _id: new ObjectId(id) };
@@ -83,21 +110,22 @@ async function run() {
     });
 
     //post mehtod for booking
-    app.post("/booked", async (req, res) => {
+    app.post("/booked",verifyFirebaseToken, async (req, res) => {
       const bookeVehicle = req.body;
       const result = await bookedCollection.insertOne(bookeVehicle);
       res.send(result);
     });
 
     // post method for adding vehecle
-    app.post("/vehicles", async (req, res) => {
+    app.post("/vehicles", verifyFirebaseToken, async (req, res) => {
+      // console.log("headers in the post", req.headers);
       const addNewVehicle = req.body;
       const result = await productsCollection.insertOne(addNewVehicle);
       res.send(result);
     });
 
     // delete the vehecle
-    app.delete("/vehicles/:id", async (req, res) => {
+    app.delete("/vehicles/:id",verifyFirebaseToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await productsCollection.deleteOne(query);
