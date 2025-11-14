@@ -64,6 +64,24 @@ async function run() {
       res.send(result);
     });
 
+    // patch operation
+    app.patch("/vehicles/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateVehicle = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: {
+          owner: updateVehicle.owner,
+          vehicleName: updateVehicle.vehicleName,
+          pricePerDay: updateVehicle.pricePerDay,
+          coverImage: updateVehicle.coverImage,
+          availability: updateVehicle.availability,
+        },
+      };
+      const result = await productsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
     //post mehtod for booking
     app.post("/booked", async (req, res) => {
       const bookeVehicle = req.body;
