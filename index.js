@@ -5,9 +5,12 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
 
- const admin = require("firebase-admin");
+const admin = require("firebase-admin");
 
-const serviceAccount = require("./travel-ease-firebase-adminsdk.json");
+const decoded = Buffer.from(process.env.FIREBASE_SERVICE_KEY, "base64").toString(
+  "utf8"
+);
+const serviceAccount = JSON.parse(decoded);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -82,7 +85,7 @@ async function run() {
     });
 
     // get booked vehicles
-    app.get("/booked",verifyFirebaseToken, async (req, res) => {
+    app.get("/booked", verifyFirebaseToken, async (req, res) => {
       const email = req.query.email;
       const query = email ? { bookedEmail: email } : {};
 
@@ -92,7 +95,7 @@ async function run() {
     });
 
     // patch operation
-    app.patch("/vehicles/:id",verifyFirebaseToken, async (req, res) => {
+    app.patch("/vehicles/:id", verifyFirebaseToken, async (req, res) => {
       const id = req.params.id;
       const updateVehicle = req.body;
       const query = { _id: new ObjectId(id) };
@@ -110,7 +113,7 @@ async function run() {
     });
 
     //post mehtod for booking
-    app.post("/booked",verifyFirebaseToken, async (req, res) => {
+    app.post("/booked", verifyFirebaseToken, async (req, res) => {
       const bookeVehicle = req.body;
       const result = await bookedCollection.insertOne(bookeVehicle);
       res.send(result);
@@ -125,7 +128,7 @@ async function run() {
     });
 
     // delete the vehecle
-    app.delete("/vehicles/:id",verifyFirebaseToken, async (req, res) => {
+    app.delete("/vehicles/:id", verifyFirebaseToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await productsCollection.deleteOne(query);
